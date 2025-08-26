@@ -1,0 +1,26 @@
+assets
+
+# Logs
+logs
+*.log
+
+.env
+.venv
+venv
+
+# IDE
+.idea
+.history
+.vscode
+.github
+.cursor
+
+
+# Python
+__pycache__
+*.pyc
+~*.py
+.python-version
+uv.lock
+watch_bot.bat
+watch_runner.py
