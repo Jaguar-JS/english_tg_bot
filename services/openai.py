@@ -1,5 +1,9 @@
-from openai import OpenAI
-from config import OPEN_AI_TOKEN
+import httpx
+from openai import AsyncOpenAI as OpenAI
+from config import OPEN_AI_TOKEN, HTTP_PROXY
+
+
+http_client=httpx.AsyncClient(proxy=HTTP_PROXY)
 
 class ChatGptService:
     client: OpenAI = None
@@ -7,18 +11,20 @@ class ChatGptService:
 
     def __init__(self, token):
         self.client = OpenAI(
-            base_url="https://openai.javarush.com/v1",
+            http_client=http_client,
+            # base_url="https://openai.javarush.com/v1",
             api_key=token
         )
         self.message_list = []
 
     async def send_message_list(self) -> str:
-        completion = self.client.chat.completions.create(
+        completion = await self.client.chat.completions.create(
             model="gpt-4o",  # gpt-4o,  gpt-4-turbo,    gpt-3.5-turbo
             messages=self.message_list,
             max_tokens=3000,
             temperature=0.9
         )
+        
         message = completion.choices[0].message
         self.message_list.append(message)
         return message.content
@@ -39,3 +45,4 @@ class ChatGptService:
 
 
 chatgpt = ChatGptService(token=OPEN_AI_TOKEN)
+
