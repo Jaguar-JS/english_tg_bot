@@ -16,7 +16,9 @@ class ChatGPTDialog(StatesGroup):
 @router.message(Command("gpt"))
 async def cmd_gpt(message: Message, state: FSMContext):
     gpt_img = load_image("gpt")
+    system_prompt = load_prompt("main")
     
+    chatgpt.set_prompt(system_prompt)
     await message.answer_photo(gpt_img)
     await send_text(message, "Напишіть повідомлення *ChatGPT*:")
     await state.set_state(ChatGPTDialog.waiting_for_message)
@@ -26,15 +28,16 @@ async def process_gpt_message(message: Message, state: FSMContext):
     user_message = message.text
     
     # Отправляем "печатает" статус
-    await message.answer("Думаю. Очікуйте...")
-    system_prompt = load_prompt("gpt")
+    placeholder = await message.answer("Думаю. Очікуйте...")
+    
     try:
-        response = await chatgpt.send_question(system_prompt, user_message)
-        await send_text(message, response)
+        response = await chatgpt.add_message(user_message)
+        await placeholder.edit_text(response)
     except Exception as e:
-        await send_text(message, f"❌ Помилка: {str(e)}")
+        await placeholder.edit_text(f"❌ Помилка: {str(e)}")
         await state.clear()
         return
 
     # Остаемся в том же состоянии для продолжения диалога
     await state.set_state(ChatGPTDialog.waiting_for_message)
+
